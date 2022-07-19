@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Available Persons</h1>
+{% if message %}
+    <p><strong>{{ message }}</strong></p>
+{% endif %}
+{% if latest_names %}
+    <ul>
+        {% for name in latest_names %}
+            <li>
+                <a href="/phonebook/{{ name.id }}/">
+                    {{ name.person_name }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No Persons are available right now.</p>
+{% endif %}
+</body>
+</html>
