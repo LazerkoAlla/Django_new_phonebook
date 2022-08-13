@@ -1,26 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>Available Persons</h1>
+
+
+{% extends 'base.html' %}
+{% block main %}
+<h4 class="card-title">Available People</h4>
+
 {% if message %}
-    <p><strong>{{ message }}</strong></p>
+<p class="alert alert-success">
+<strong>{{ message }}</strong>
+</p>
 {% endif %}
 {% if latest_names %}
-    <ul>
-        {% for name in latest_names %}
-            <li>
+<ul>
+{% for name in latest_names %}
+ <li>
                 <a href="/phonebook/{{ name.id }}/">
                     {{ name.person_name }}
                 </a>
             </li>
-        {% endfor %}
-    </ul>
+{% endfor %}
+</ul>
 {% else %}
-    <p>No Persons are available right now.</p>
+<p>No people are available right now.</p>
 {% endif %}
-</body>
-</html>
+{% endblock %}
+
+
