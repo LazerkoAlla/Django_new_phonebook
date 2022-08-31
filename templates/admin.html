@@ -5,25 +5,25 @@
             <div class="card-body">
                 <form action="../post_client/" method="post">
                     {% csrf_token %}
-                    <h5>Add client:</h5>
+                    <h5>Add person:</h5>
                     <div class="mb-3">
                         <input class="form-control"
-                               placeholder="Client name"
+                               placeholder="Person name"
                                name="text"
                                required/>
                     </div>
                     <div class="card mb-3">
                         <div class="card-body" id="orders_new">
-                            <h6>Add orders:</h6>
+                            <h6>Add details:</h6>
                             <div class="mb-3">
                                 <input class="form-control"
-                                       placeholder="description"
+                                       placeholder="phone number"
                                        name="description"
                                        required/>
                             </div>
                             <div class="mb-3">
                                 <input class="form-control"
-                                       placeholder="qty"
+                                       placeholder="email"
                                        name="qty"
                                        required/>
                             </div>
@@ -38,20 +38,26 @@
                 </form>
             </div>
         </div>
-        <div class="card mb-3">
-            <div class="card-body">
-                <h4 class="card-title">List of clients</h4>
-                {% if name %}
-                    <ul> {% for client in clients %}
-                        <li><a href="/orders/{{ name.id }}/"> {{ name.name_name }} </a></li>
-                    {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>No clients available</p>
-                {% endif %}
-            </div>
-        </div>
+        <h4 class="card-title">Available People</h4>
 
+{% if message %}
+<p class="alert alert-success">
+<strong>{{ message }}</strong>
+</p>
+{% endif %}
+{% if latest_names %}
+<ul>
+{% for name in latest_names %}
+ <li>
+                <a href="/phonebook/{{ name.id }}/">
+                    {{ name.person_name }}
+                </a>
+            </li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No people are available right now.</p>
+{% endif %}
     {% else %}
         <h4>Access denied.</h4>
     {% endif %}

@@ -1,9 +1,11 @@
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
 # Create your views here.
 # главная страница со списком телефонов
-from phonebook.models import Name, Detail
+from phonebook.models import Name, Detail, Mark
 
 # Базовый класс для обработки страниц с формами.
 from django.views.generic.edit import FormView
@@ -29,7 +31,8 @@ from datetime import datetime
 from django.http import JsonResponse
 import json
 
-
+from django import forms
+from django.utils.translation import gettext, gettext_lazy as _
 # вычисление среднего,
 # например, средней оценки
 from django.db.models import Avg
@@ -64,6 +67,7 @@ def index(request):
 #             "error_message": error_message
 #         }
 #     )
+
 def detail(request, id):
     error_message = None
     if "error_message" in request.GET:
@@ -81,28 +85,30 @@ def detail(request, id):
                     .order_by('-pub_date')[:5],
 
             # # кол-во оценок, выставленных пользователем
-            # "already_rated_by_user":
-            #     Mark.objects
-            #         .filter(author_id=request.user.id)
-            #         .filter(name=id)
-            #         .count(),
-            #
+            "already_rated_by_user":
+                Mark.objects
+                    .filter(author_id=request.user.id)
+                    .filter(name=id)
+                    .count(),
+
             # # оценка текущего пользователя
-            # "user_rating":
-            #     Mark.objects
-            #         .filter(author_id=request.user.id)
-            #         .filter(name=id)
-            #         .aggregate(Avg('mark'))
-            #     ["mark__avg"],
-            #
+            "user_rating":
+                Mark.objects
+                    .filter(author_id=request.user.id)
+                    .filter(name=id)
+                    .aggregate(Avg('mark'))
+                ["mark__avg"],
+
             # # средняя по всем пользователям оценка
-            # "avg_mark":
-            #     Mark.objects
-            #         .filter(name=id)
-            #         .aggregate(Avg('mark'))
-            #     ["mark__avg"]
+            "avg_mark":
+                Mark.objects
+                    .filter(name=id)
+                    .aggregate(Avg('mark'))
+                ["mark__avg"]
         }
     )
+
+
 # наше представление для регистрации
 class RegisterFormView(FormView):
 # будем строить на основе
@@ -173,20 +179,21 @@ class PasswordChangeView(FormView):
         return super(PasswordChangeView, self).form_valid(form)
 
 
-# def post_mark(request, id):
-#     msg = Mark()
-#     msg.author = request.user
-#     msg.name = get_object_or_404(Name, pk=id)
-#     msg.mark = request.POST['mark']
-#     msg.pub_date = datetime.now()
-#     msg.save()
-#     return HttpResponseRedirect(app_url + str(id))
-#
-# def get_mark(request, id):
-#     res = Mark.objects\
-#     .filter(name_id=id)\
-#     .aggregate(Avg('mark'))
-#     return JsonResponse(json.dumps(res), safe=False)
+
+def post_mark(request, id):
+    msg = Mark()
+    msg.author = request.user
+    msg.name = get_object_or_404(Name, pk=id)
+    msg.mark = request.POST['mark']
+    msg.pub_date = datetime.now()
+    msg.save()
+    return HttpResponseRedirect(app_url + str(id))
+
+def get_mark(request, id):
+    res = Mark.objects\
+    .filter(name_id=id)\
+    .aggregate(Avg('mark'))
+    return JsonResponse(json.dumps(res), safe=False)
 
 def msg_list(request, name_id):
     # выбираем список сообщений
@@ -219,17 +226,111 @@ def post(request, riddle_id):
     msg.save()
     return HttpResponseRedirect(app_url+str(riddle_id))
 
-# def post_mark(request, name_id):
-#     msg = Mark()
-#     msg.author = request.user
-#     msg.name = get_object_or_404(Name, pk=name_id)
-#     msg.mark = request.POST['mark']
-#     msg.pub_date = datetime.now()
-#     msg.save()
-#     return HttpResponseRedirect(app_url+str(name_id))
-#
-# def get_mark(request, name_id):
-#     res = Mark.objects.filter(name_id=name_id).aggregate(Avg('mark'))
-#     return JsonResponse(json.dumps(res), safe=False)
+def admin(request):
+    message = None
+    if "message" in request.GET:
+        message = request.GET["message"]
+# создание HTML-страницы по шаблону admin.html
+# с заданными параметрами latest_riddles и message
+    return render(
+        request,
+        "admin.html",
+        {
+            "latest_riddles":
+            Name.objects.order_by('-pub_date')[:5],
+            "message": message,
+        }
+    )
 
+def post_riddle(request):
+# защита от добавления загадок неадминистраторами
+    author = request.user
+    if not (author.is_authenticated and author.is_staff):
+        return HttpResponseRedirect(app_url+"admin")
+# добавление загадки
+    rid = Name()
+    rid.person_name = request.POST['text']
+    rid.pub_date = datetime.now()
+    rid.save()
+# добавление вариантов ответа
+    i = 1 # нумерация вариантов на форме начинается с 1
+# количество вариантов неизвестно,
+# поэтому ожидаем возникновение исключения,
+# когда варианты кончатся
+    try:
+        while request.POST['option'+str(i)]:
+            opt = Detail()
+            opt.name = rid
+            opt.phone = request.POST['option'+str(i)]
+            opt.email = request.POST['option' + str(i)]
+            opt.save()
+
+# это ожидаемое исключение,
+# при котором ничего делать не надо
+    except:
+        pass
+        return HttpResponseRedirect(app_url+str(rid.id))
+
+        # цикл по всем пользователям
+    for i in User.objects.all():
+            # проверка, что текущий пользователь подписан - указал e-mail
+        if i.email != '':
+            send_mail(
+                    # тема письма
+                'New riddle',
+                    # текст письма
+                'A new riddle was added on riddles portal:\n' +
+                'http://localhost:8000/riddles/' + str(rid.id) + '.',
+                    # отправитель
+                'lazerko.alla@bk.ru',
+                    # список получателей из одного получателя
+                [i.email],
+                    # отключаем замалчивание ошибок,
+                    # чтобы из видеть и исправлять
+                False
+                )
+    return HttpResponseRedirect(app_url + str(rid.id))
+
+
+class SubscribeForm(forms.Form):
+# поле для ввода e-mail
+    email = forms.EmailField(
+        label=_("E-mail"),
+        required=True,
+    )
+# конструктор для запоминания пользователя,
+# которому задается e-mail
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+# сохранение e-mail
+    def save(self, commit=True):
+        self.user.email = self.cleaned_data["email"]
+        if commit:
+            self.user.save()
+        return self.user
+
+# класс, описывающий взаимодействие логики
+# со страницами веб-приложения
+class SubscribeView(FormView):
+# используем класс с логикой
+    form_class = SubscribeForm
+# используем собственный шаблон
+    template_name = 'subscribe.html'
+# после подписки возвращаем на главную станицу
+    success_url = app_url
+# передача пользователя для конструктора класса с логикой
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+# вызов логики сохранения введенных данных
+    def form_valid(self, form):
+        form.save()
+        return HttpResponseRedirect(self.success_url)
+
+def unsubscribe(request):
+    request.user.email = ''
+    request.user.save()
+    return HttpResponseRedirect(app_url)
 

@@ -27,6 +27,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# настройка отправки почты -
+# параметры подключения к почтовому SMTP-серверу
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_HOST_USER = 'lazerko.alla@bk.ru'
+EMAIL_HOST_PASSWORD = 'mqbZFYsuqetRypJ44BeH'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
 
 # Application definition
 
@@ -39,6 +46,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'crispy_forms',
+    # для API
+    'tastypie',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

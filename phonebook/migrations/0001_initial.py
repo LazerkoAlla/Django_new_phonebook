@@ -42,4 +42,14 @@ class Migration(migrations.Migration):
                 ('name', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='phonebook.name')),
             ],
         ),
+        migrations.CreateModel(
+            name='Mark',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='phonebook.name')),
+                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='Пользователь')),
+                ('mark', models.DateTimeField(default=django.utils.timezone.now, verbose_name='Рейтинг')),
+                ('pub_date', models.DateTimeField(default=django.utils.timezone.now, verbose_name='Дата оценивания')),
+            ],
+        ),
     ]

@@ -28,31 +28,17 @@ class Message(models.Model):
         'Дата сообщения',
         default=timezone.now)
 
-# class Mark(models.Model):
-#     name = models.ForeignKey(
-#         Name,
-#         verbose_name='Загадка',
-#         on_delete=models.CASCADE)
-#     author = models.ForeignKey(
-#         User,
-#         verbose_name='Пользователь', on_delete=models.CASCADE)
-#     mark = models.IntegerField(
-#         verbose_name='Оценка')
-#     pub_date = models.DateTimeField(
-#         'Дата оценки',
-#         default=timezone.now)
-
-# class Mark(models.Model):
-#     name = models.ForeignKey(
-#         Name,
-#         verbose_name='Загадка',
-#         on_delete=models.CASCADE)
-#     author = models.ForeignKey(
-#     User,
-#         verbose_name='Пользователь', on_delete=models.CASCADE)
-#     mark = models.IntegerField(
-#         verbose_name='Оценка')
-#     pub_date = models.DateTimeField(
-#         'Дата оценки',
-#         default=timezone.now)
+class Mark(models.Model):
+    name = models.ForeignKey(
+        Name,
+        verbose_name='Загадка',
+        on_delete=models.CASCADE)
+    author = models.ForeignKey(
+        User,
+        verbose_name='Пользователь', on_delete=models.CASCADE)
+    mark = models.IntegerField(
+        verbose_name='Оценка')
+    pub_date = models.DateTimeField(
+        'Дата оценки',
+        default=timezone.now)
 

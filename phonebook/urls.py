@@ -1,6 +1,15 @@
 from django.urls import path, re_path
 
 from phonebook import views
+# новые import для API
+from django.conf.urls import include
+from phonebook.api import PhonebookResource, OptionResource
+from tastypie.api import Api
+# api_name будет указываться в URLах
+# перед resource_name из api.py
+api = Api(api_name='api')
+api.register(PhonebookResource())
+api.register(OptionResource())
 
 app_name = 'phonebook'
 urlpatterns = [
@@ -12,9 +21,16 @@ urlpatterns = [
 # отправка списка сообщений
     re_path(r'^([0-9]+)/msg_list/$', views.msg_list, name='msg_list'),
 #  # отправка оценки
-#     re_path(r'^([0-9]+)/post_mark/$', views.post_mark, name='post_mark'),
+    re_path(r'^([0-9]+)/post_mark/$', views.post_mark, name='post_mark'),
 # # средняя оценка
-#     re_path(r'^([0-9]+)/get_mark/$',views.get_mark, name='get_mark'),
+    re_path(r'^([0-9]+)/get_mark/$',views.get_mark, name='get_mark'),
+    re_path(r'^admin/$', views.admin, name='admin'),
+    #new person
+    re_path(r'^post_client/$', views.post_riddle, name='post_client'),
+    re_path(r'^subscribe/$', views.SubscribeView.as_view()),
+    re_path(r'^unsubscribe/$', views.unsubscribe, name='unsubscribe'),
+# для API
+    re_path(r'^', include(api.urls)),
     re_path(r'^register/$', views.RegisterFormView.as_view()),
     re_path(r'^login/$', views.LoginFormView.as_view()),
     re_path(r'^logout/$', views.LogoutView.as_view()),
